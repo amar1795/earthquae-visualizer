@@ -10,23 +10,50 @@
   --text: #e6eef8;
 }
 
-/* Theme toggle button */
-.theme-toggle {
+/* Theme switch (track + knob) */
+.theme-switch {
   position: absolute;
   right: 12px;
   top: 12px;
-  background: transparent;
-  border: 1px solid rgba(0,0,0,0.08);
-  padding: 6px 8px;
-  border-radius: 6px;
-  cursor: pointer;
   z-index: 9000;
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
 }
-
-.dark .theme-toggle {
-  border-color: rgba(255,255,255,0.12);
+.theme-switch input { /* visually hide the checkbox but keep it accessible */
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
+.theme-switch .switch {
+  width: 48px;
+  height: 26px;
+  background: rgba(15,23,42,0.06);
+  border-radius: 999px;
+  display: inline-block;
+  position: relative;
+  transition: background 160ms ease;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+}
+.theme-switch .knob {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 999px;
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  transition: transform 180ms cubic-bezier(.2,.9,.2,1);
+  box-shadow: 0 2px 6px rgba(2,6,23,0.12);
+}
+.theme-switch input:checked + .switch {
+  background: linear-gradient(90deg, #4f46e5, #06b6d4);
+}
+.theme-switch input:checked + .switch .knob {
+  transform: translateX(22px);
+}
+.dark .theme-switch .switch { box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06); }
 html,body,#root {
   height: 100%;
   margin: 0;

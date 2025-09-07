@@ -24,13 +24,17 @@ export default function ThemeToggle() {
   }, [isDark])
 
   return (
-    <button
-      aria-label="Toggle theme"
-      title="Toggle light / dark"
-      onClick={() => setIsDark(v => !v)}
-      className="theme-toggle"
-    >
-      {isDark ? '🌙' : '☀️'}
-    </button>
+    <label className="theme-switch" aria-label="Toggle color theme">
+      <input
+        type="checkbox"
+        role="switch"
+        aria-checked={isDark}
+        checked={isDark}
+        onChange={() => setIsDark(v => !v)}
+      />
+      <span className="switch" aria-hidden>
+        <span className="knob" />
+      </span>
+    </label>
   )
 }
