@@ -2,12 +2,17 @@
 :root {
   --bg: #f7fbff;
   --text: #0f172a;
+  /* panel colors (cards, overlays) */
+  --panel-bg: rgba(255,255,255,0.97);
+  --panel-text: var(--text);
 }
 
 /* Dark theme variables applied when document.documentElement has .dark */
 .dark {
   --bg: #0b1220;
   --text: #e6eef8;
+  --panel-bg: rgba(9,15,24,0.85);
+  --panel-text: #e6eef8;
 }
 
 /* Theme switch (track + knob) */
@@ -75,7 +80,8 @@ h1 {
   position: absolute;
   right: 12px;
   bottom: 12px;
-  background: white;
+  background: var(--panel-bg);
+  color: var(--panel-text);
   padding: 8px;
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.12);
@@ -88,10 +94,10 @@ h1 {
 .eq-legend .toggle { background:transparent;border:none;cursor:pointer;padding:4px }
 
 /* heatmap legend */
-.heat-legend { position: absolute; right: 12px; top: 12px; background: white; padding: 8px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 8000 }
+.heat-legend { position: absolute; right: 12px; top: 12px; background: var(--panel-bg); color: var(--panel-text); padding: 8px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 8000 }
 .heat-legend .bar { height: 10px; border-radius: 4px; background: linear-gradient(90deg, rgba(16,185,129,1), rgba(236,72,153,1)); }
 
 /* cluster legend */
-.cluster-legend { position: absolute; left: 12px; bottom: 80px; background: white; padding: 8px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 8000 }
+.cluster-legend { position: absolute; left: 12px; bottom: 80px; background: var(--panel-bg); color: var(--panel-text); padding: 8px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 8000 }
 .cluster-legend .item { display:flex; gap:8px; align-items:center; margin-top:6px }
 .cluster-legend .dot { width:18px; height:18px; border-radius:50%; background:#ccc; display:inline-block }

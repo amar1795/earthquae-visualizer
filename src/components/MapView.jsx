@@ -586,7 +586,8 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
     left: isMobile ? 8 : 12,
     right: isMobile ? 8 : 'auto',
     zIndex: 7000,
-    background: 'rgba(255,255,255,0.97)',
+    background: 'var(--panel-bg)',
+    color: 'var(--panel-text)',
     padding: 10,
     borderRadius: 8,
     width: isMobile ? 'auto' : 320,
@@ -597,8 +598,8 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
     position: 'fixed',
     bottom: 12,
     zIndex: 20000,
-    background: 'rgba(17,24,39,0.95)',
-    color: 'white',
+    background: 'var(--panel-bg)',
+    color: 'var(--panel-text)',
     padding: '12px 16px',
     borderRadius: 8,
     boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
@@ -618,14 +619,14 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
     <>
       <div className="h-[70vh] w-full rounded-md overflow-hidden shadow" style={{ height: '70vh', position: 'relative' }}>
         {loading && (
-          <div style={{position:'absolute', left:12, top:12, zIndex:6000, background:'rgba(255,255,255,0.95)', padding:10, borderRadius:8}}>
+          <div style={{position:'absolute', left:12, top:12, zIndex:6000, background:'var(--panel-bg)', color:'var(--panel-text)', padding:10, borderRadius:8}}>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
               <div style={{width:16,height:16,border:'3px solid #cbd5e1',borderTopColor:'#2563eb',borderRadius:999,animation:'spin 1s linear infinite'}} />
               <div style={{fontSize:13}}>Loading earthquakes...</div>
             </div>
           </div>
         )}
-        {error && <div style={{position:'absolute', left:12, top:12, zIndex:6000, background:'rgba(255,255,255,0.95)', padding:10, borderRadius:8, color:'red'}}>Error: {error}</div>}
+  {error && <div style={{position:'absolute', left:12, top:12, zIndex:6000, background:'var(--panel-bg)', color:'red', padding:10, borderRadius:8}}>Error: {error}</div>}
         
         <MapContainer center={[20, 0]} zoom={2} style={{ height: '100%', width: '100%' }}>
           <ViewportTracker onBoundsChange={handleBoundsChange} />
@@ -666,7 +667,7 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
                 <select 
                   value={performanceMode} 
                   onChange={e => setPerformanceMode(e.target.value)}
-                  style={{ fontSize: 12, padding: '4px 6px', borderRadius: 4, border: '1px solid #d1d5db' }}
+                  style={{ fontSize: 12, padding: '4px 6px', borderRadius: 4, border: '1px solid rgba(0,0,0,0.08)', background: 'var(--panel-bg)', color: 'var(--panel-text)' }}
                 >
                   <option value="performance">Performance</option>
                   <option value="balanced">Balanced</option>
@@ -752,7 +753,7 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
         )}
 
         {!loading && !error && allData.length === 0 && (
-          <div style={{position:'absolute', left:'50%', top:'48%', transform:'translate(-50%,-50%)', zIndex:6000, background:'rgba(255,255,255,0.95)', padding:16, borderRadius:8}}>
+          <div style={{position:'absolute', left:'50%', top:'48%', transform:'translate(-50%,-50%)', zIndex:6000, background:'var(--panel-bg)', color: 'var(--panel-text)', padding:16, borderRadius:8}}>
             No earthquakes match current filters.
           </div>
         )}
@@ -765,7 +766,8 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
             position: absolute;
             bottom: 20px;
             right: 12px;
-            background: rgba(255,255,255,0.97);
+            background: var(--panel-bg);
+            color: var(--panel-text);
             padding: 12px;
             border-radius: 8px;
             z-index: 1000;
@@ -778,19 +780,20 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
           .eq-legend .title { font-weight: 600; margin-bottom: 8px; font-size: 14px; }
           .eq-legend .row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
           .eq-legend .swatch { width: 16px; height: 16px; border-radius: 4px; }
-          .eq-legend .toggle {
-            background: #f3f4f6;
-            border: 1px solid #e5e7eb;
-            border-radius: 6px;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            line-height: 1;
-          }
+            .eq-legend .toggle {
+              background: var(--panel-bg);
+              border: 1px solid rgba(0,0,0,0.06);
+              color: var(--panel-text);
+              border-radius: 6px;
+              width: 24px;
+              height: 24px;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 16px;
+              line-height: 1;
+            }
 
           /* Mobile adjustments */
           @media (max-width: 767px) {
@@ -889,7 +892,8 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
         }}>
           {/* Modal Content container made responsive */}
           <div style={{ 
-            background: 'white', 
+            background: 'var(--panel-bg)', 
+            color: 'var(--panel-text)',
             borderRadius: '8px',
             padding: '20px',
             width: '100%',
