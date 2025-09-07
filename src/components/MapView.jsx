@@ -27,6 +27,7 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
   const [renderAll, setRenderAll] = useState(false)
   const [renderProgress, setRenderProgress] = useState(0)
   const [legendCollapsed, setLegendCollapsed] = useState(false)
+  const [showClusters, setShowClusters] = useState(true)
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [heatRadius, setHeatRadius] = useState(25)
   const [heatBlur, setHeatBlur] = useState(15)
@@ -133,7 +134,8 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
           />
         )}
 
-        <MarkerClusterGroup
+  {showClusters && (
+  <MarkerClusterGroup
           iconCreateFunction={cluster => {
             try {
               const children = cluster.getAllChildMarkers() || []
@@ -147,8 +149,14 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
               }
               const color = magnitudeColor(maxMag)
               const size = Math.min(60, 30 + Math.round(Math.log10(Math.max(1, count)) * 8))
-              const html = `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;border:2px solid rgba(255,255,255,0.9);">${count}<div style=\"font-size:10px;font-weight:600;margin-left:6px;\">${maxMag ? maxMag.toFixed(1) : ''}</div></div>`
-              return L.divIcon({ html, className: 'custom-cluster-icon', iconSize: [size, size] })
+              // accessible label and tabindex so keyboard/screen-reader users can discover cluster meaning
+              const aria = `aria-label="${count} earthquakes; max magnitude ${maxMag ? maxMag.toFixed(1) : 'N/A'}" role="button" tabindex="0"`
+              const inner = `<div style="display:flex;flex-direction:row;align-items:center;gap:6px;">
+                                <div style=\"background:${color};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;border:2px solid rgba(255,255,255,0.9);\">${count}</div>
+                                <div style=\"font-size:11px; font-weight:600; color:#0f172a\">${maxMag ? maxMag.toFixed(1) : ''}</div>
+                             </div>`
+              const html = `<div ${aria} class=\"custom-cluster-icon-wrapper\">${inner}</div>`
+              return L.divIcon({ html, className: 'custom-cluster-icon', iconSize: [size + 20, size + 8] })
             } catch (e) {
               return undefined
             }
@@ -171,7 +179,8 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
               </Popup>
             </Marker>
           ))}
-        </MarkerClusterGroup>
+  </MarkerClusterGroup>
+  )}
       </MapContainer>
 
       {/* heatmap toggle */}
@@ -195,6 +204,41 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
               <input type="range" min="0.1" max="3" step="0.1" value={heatScale} onChange={e => setHeatScale(Number(e.target.value))} />
             </div>
           )}
+        </div>
+      )}
+
+      {/* heatmap legend bar */}
+      {showHeatmap && (
+        <div className="heat-legend" style={{ right: '12px', left: 'auto', top: 12 }} aria-hidden={false} role="img" aria-label="Heatmap intensity legend">
+          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Intensity</div>
+          <div className="bar" style={{ width: 140 }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginTop: 6 }}>
+            <div>Low</div>
+            <div>High</div>
+          </div>
+        </div>
+      )}
+
+      {/* cluster legend explaining icon (collapsible). When closed, show an exclamation button to reopen. */}
+      {showClusters ? (
+        <div className="cluster-legend" role="note" aria-label="Cluster legend">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: 12, fontWeight: 600 }}>Cluster icon</div>
+            <button aria-label="Hide clusters" onClick={() => setShowClusters(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 14 }}>✕</button>
+          </div>
+          <div style={{ fontSize: 12, marginTop:6 }}>Shows count and strongest earthquake magnitude inside the cluster.</div>
+          <div className="item">
+            <div className="dot" style={{ background: '#10b981' }}></div>
+            <div style={{ fontSize: 12 }}>Low max magnitude</div>
+          </div>
+          <div className="item">
+            <div className="dot" style={{ background: '#b91c1c' }}></div>
+            <div style={{ fontSize: 12 }}>High max magnitude</div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ position: 'absolute', left: 12, bottom: 80, zIndex: 8000 }}>
+          <button aria-label="Show clusters" title="Show clusters" onClick={() => setShowClusters(true)} style={{ background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>⚠</button>
         </div>
       )}
 
