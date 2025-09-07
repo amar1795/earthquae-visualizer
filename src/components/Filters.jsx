@@ -57,7 +57,7 @@ export default function Filters({ range, setRange, minMagnitude, setMinMagnitude
             step="0.1"
             value={localMin}
             onChange={e => setLocalMin(e.target.value)}
-            style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb' }}
+            style={{ width: '10%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e5e7eb' }}
           />
           <div style={{ minWidth: 80, fontSize: 12, color: pending ? '#2563eb' : '#6b7280' }}>
             {pending ? 'Applying...' : 'Applied'}

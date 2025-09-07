@@ -14,15 +14,18 @@ export default function Home() {
 
   return (
     <main className="p-6 font-sans" style={{ padding: '1.5rem', fontFamily: 'Arial, sans-serif' }}>
-      <header className="mb-4" style={{ marginBottom: '1rem' }}>
-        <h1 className="text-2xl font-bold" style={{ fontSize: '1.5rem', margin: 0 }}>🌍 Earthquake Visualizer</h1>
-        <p className="text-sm text-gray-600" style={{ color: '#4b5563' }}>Map and filters will be added in subsequent steps.</p>
-      </header>
+
+        <div className=" p-4 sm:py-6 rounded mb-4 w-full flex items-center justify-center">
+          <header className="mb-0 w-full max-w-4xl px-2">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-center uppercase tracking-tight" style={{ margin: 0 }}>
+              <span className="hidden sm:inline-block mr-2" aria-hidden="true">🌍</span>
+              Earthquake Visualizer
+            </h1>
+          </header>
+        </div>
 
       <section className="grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
-        <div className="p-4 bg-white rounded shadow">
-            <Filters range={range} setRange={setRange} minMagnitude={minMagnitude} setMinMagnitude={setMinMagnitude} />
-          </div>
+        
         
         <div className="lg:col-span-3">
           <MapView range={range} minMagnitude={minMagnitude} selectedId={selectedId} setSelectedId={setSelectedId} highlightedIds={highlightedIds} />
