@@ -1,0 +1,16 @@
+/* Global styles */
+:root {
+  --bg: #f7fbff;
+  --text: #0f172a;
+}
+
+html,body,#root {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1 {
+  margin: 0 0 0.5rem 0;
+}
