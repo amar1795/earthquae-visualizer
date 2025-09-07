@@ -25,6 +25,7 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
   const [error, setError] = useState(null)
   const [renderAll, setRenderAll] = useState(false)
   const [renderProgress, setRenderProgress] = useState(0)
+  const [legendCollapsed, setLegendCollapsed] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -180,15 +181,32 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
           </div>
         )}
 
-  <div aria-hidden={false} role="region" aria-label="Magnitude legend" style={{ position: 'absolute', right: 12, bottom: 12, background: 'white', padding: 8, borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.12)', zIndex: 8000 }}>
-        <div style={{ fontSize: 12, fontWeight: 600 }}>Legend</div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
-          <div style={{ width: 12, height: 12, background: '#10b981' }}></div><div style={{fontSize:12}}> &lt;2</div>
-          <div style={{ width: 12, height: 12, background: '#84cc16' }}></div><div style={{fontSize:12}}> 2-3.9</div>
-          <div style={{ width: 12, height: 12, background: '#f59e0b' }}></div><div style={{fontSize:12}}> 4-4.9</div>
-          <div style={{ width: 12, height: 12, background: '#f97316' }}></div><div style={{fontSize:12}}> 5-5.9</div>
-          <div style={{ width: 12, height: 12, background: '#b91c1c' }}></div><div style={{fontSize:12}}> 6+</div>
-        </div>
+      <div className={`eq-legend ${legendCollapsed ? 'collapsed' : ''}`} role="region" aria-label="Magnitude legend">
+        {!legendCollapsed ? (
+          <>
+            <div className="title">Legend</div>
+            <div className="row">
+              <div className="swatch" style={{ background: '#10b981' }}></div><div style={{fontSize:12}}> &lt;2</div>
+            </div>
+            <div className="row">
+              <div className="swatch" style={{ background: '#84cc16' }}></div><div style={{fontSize:12}}> 2-3.9</div>
+            </div>
+            <div className="row">
+              <div className="swatch" style={{ background: '#f59e0b' }}></div><div style={{fontSize:12}}> 4-4.9</div>
+            </div>
+            <div className="row">
+              <div className="swatch" style={{ background: '#f97316' }}></div><div style={{fontSize:12}}> 5-5.9</div>
+            </div>
+            <div className="row">
+              <div className="swatch" style={{ background: '#b91c1c' }}></div><div style={{fontSize:12}}> 6+</div>
+            </div>
+            <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+              <button className="toggle" aria-label="Collapse legend" onClick={() => setLegendCollapsed(true)}>▾</button>
+            </div>
+          </>
+        ) : (
+          <button className="toggle" aria-label="Expand legend" onClick={() => setLegendCollapsed(false)}>▸</button>
+        )}
       </div>
     </div>
   )
