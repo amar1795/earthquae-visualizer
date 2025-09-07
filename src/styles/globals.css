@@ -10,6 +10,12 @@
   /* chart colors */
   --chart-line: #2563eb; /* blue */
   --chart-bar: #ef4444; /* red */
+  /* controls / selected states */
+  --accent: #2563eb;
+  --muted-border: rgba(0,0,0,0.08);
+  --selected-bg: #bfdbfe;
+  --selected-border: #2563eb;
+  --selected-text: #0f172a;
 }
 
 /* Dark theme variables applied when document.documentElement has .dark */
@@ -21,6 +27,11 @@
   --grid: rgba(255,255,255,0.06);
   --chart-line: #7dd3fc; /* light cyan for dark bg */
   --chart-bar: #fb7185; /* lighter pink/red for dark bg */
+  --accent: #60a5fa;
+  --muted-border: rgba(255,255,255,0.06);
+  --selected-bg: rgba(255,255,255,0.06);
+  --selected-border: rgba(255,255,255,0.12);
+  --selected-text: var(--panel-text);
 }
 
 /* Recharts overrides so SVG axes, grid lines and tooltips follow theme variables */

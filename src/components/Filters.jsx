@@ -37,9 +37,9 @@ export default function Filters({ range, setRange, minMagnitude, setMinMagnitude
               style={{
                   padding: '6px 10px',
                   borderRadius: 6,
-                  border: range === r ? '2px solid #2563eb' : '1px solid rgba(0,0,0,0.08)',
-                  background: range === r ? '#bfdbfe' : 'var(--panel-bg)',
-                  color: 'var(--panel-text)',
+                  border: range === r ? `2px solid var(--selected-border)` : `1px solid var(--muted-border)`,
+                  background: range === r ? 'var(--selected-bg)' : 'var(--panel-bg)',
+                  color: range === r ? 'var(--selected-text)' : 'var(--panel-text)',
                   cursor: 'pointer'
                 }}
             >
@@ -60,7 +60,7 @@ export default function Filters({ range, setRange, minMagnitude, setMinMagnitude
             onChange={e => setLocalMin(e.target.value)}
             style={{ width: '10%', padding: '8px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.08)', background: 'var(--panel-bg)', color: 'var(--panel-text)' }}
           />
-          <div style={{ minWidth: 80, fontSize: 12, color: pending ? '#2563eb' : '#6b7280' }}>
+          <div style={{ minWidth: 80, fontSize: 12, color: pending ? 'var(--accent)' : '#6b7280' }}>
             {pending ? 'Applying...' : 'Applied'}
           </div>
         </div>
