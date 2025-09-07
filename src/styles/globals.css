@@ -14,3 +14,8 @@ html,body,#root {
 h1 {
   margin: 0 0 0.5rem 0;
 }
+
+/* Tailwind base (generated at build time) */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
