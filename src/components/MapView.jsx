@@ -382,17 +382,19 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
       </div>
     )}
 
-    {/* Cache inspector panel */}
+    {/* Cache inspector modal centered over the map */}
     {showInspector && (
-      <div style={{ position: 'absolute', right: 12, top: 80, zIndex: 20000 }}>
-        <CacheInspector onClose={() => setShowInspector(false)} onClearAll={(err, removed) => {
-          if (err) {
-            setToast('Failed to clear cache')
-            return
-          }
-          setToast(`${removed || 0} cache entries removed`)
-          setShowInspector(false)
-        }} />
+      <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 30000 }}>
+        <div style={{ zIndex: 30001 }}>
+          <CacheInspector onClose={() => setShowInspector(false)} onClearAll={(err, removed) => {
+            if (err) {
+              setToast('Failed to clear cache')
+              return
+            }
+            setToast(`${removed || 0} cache entries removed`)
+            setShowInspector(false)
+          }} />
+        </div>
       </div>
     )}
     </>

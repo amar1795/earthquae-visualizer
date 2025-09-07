@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import cache from '../lib/cache'
 
 export default function CacheInspector(props) {
@@ -53,37 +52,30 @@ export default function CacheInspector(props) {
         <button onClick={onClose || (() => {})} style={{ background: '#e5e7eb', border: 'none', padding: '8px 10px', borderRadius: 6, cursor: 'pointer' }}>Close</button>
       </div>
 
-      {showConfirm && (() => {
-        const modal = (
-          <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-            <div role="dialog" aria-modal="true" style={{ width: 360, background: 'white', padding: 16, borderRadius: 8, boxShadow: '0 8px 30px rgba(0,0,0,0.2)' }}>
-              <div style={{ fontWeight: 700 }}>Confirm clear cache</div>
-              <div style={{ marginTop: 8, fontSize: 13 }}>Clear all cached entries? This cannot be undone.</div>
-              <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                <button onClick={() => setShowConfirm(false)} style={{ background: '#e5e7eb', border: 'none', padding: '8px 10px', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
-                <button onClick={async () => {
-                  setShowConfirm(false)
-                  setClearing(true)
-                  try {
-                    const removed = await cache.clearAll()
-                    setKeys([])
-                    if (props.onClearAll) props.onClearAll(null, removed)
-                  } catch (e) {
-                    if (props.onClearAll) props.onClearAll(e)
-                  } finally {
-                    setClearing(false)
-                  }
-                }} disabled={clearing} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 10px', borderRadius: 6, cursor: 'pointer' }}>{clearing ? 'Clearing...' : 'Confirm'}</button>
-              </div>
+      {showConfirm && (
+        <div style={{ position: 'fixed', left: 0, top: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 40000 }}>
+          <div role="dialog" aria-modal="true" style={{ width: 420, background: 'white', padding: 18, borderRadius: 8, boxShadow: '0 12px 40px rgba(0,0,0,0.3)', zIndex: 40001 }}>
+            <div style={{ fontWeight: 700 }}>Confirm clear cache</div>
+            <div style={{ marginTop: 8, fontSize: 13 }}>Clear all cached entries? This cannot be undone.</div>
+            <div style={{ marginTop: 14, display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button onClick={() => setShowConfirm(false)} style={{ background: '#e5e7eb', border: 'none', padding: '8px 12px', borderRadius: 6, cursor: 'pointer' }}>Cancel</button>
+              <button onClick={async () => {
+                setShowConfirm(false)
+                setClearing(true)
+                try {
+                  const removed = await cache.clearAll()
+                  setKeys([])
+                  if (props.onClearAll) props.onClearAll(null, removed)
+                } catch (e) {
+                  if (props.onClearAll) props.onClearAll(e)
+                } finally {
+                  setClearing(false)
+                }
+              }} disabled={clearing} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 12px', borderRadius: 6, cursor: 'pointer' }}>{clearing ? 'Clearing...' : 'Confirm'}</button>
             </div>
           </div>
-        )
-        // Use a portal so the overlay isn't hidden by map/container stacking contexts
-        if (typeof document !== 'undefined' && document.body) {
-          return createPortal(modal, document.body)
-        }
-        return modal
-      })()}
+        </div>
+      )}
     </div>
   )
 }
