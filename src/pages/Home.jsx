@@ -1,5 +1,7 @@
 import React from 'react'
 import MapView from '../components/MapView'
+import Filters from '../components/Filters'
+import { useState } from 'react'
 
 export default function Home() {
   return (
@@ -11,12 +13,27 @@ export default function Home() {
 
       <section className="grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
         <aside className="lg:col-span-1">
-          <div className="p-4 bg-white rounded shadow">Filters panel (coming soon)</div>
+          <div className="p-4 bg-white rounded shadow">
+            <FiltersWrapper />
+          </div>
         </aside>
         <div className="lg:col-span-3">
-          <MapView />
+          <MapViewWrapper />
         </div>
       </section>
     </main>
   )
+}
+
+function MapViewWrapper() {
+  const [range, setRange] = useState('24h')
+  const [minMagnitude, setMinMagnitude] = useState(0)
+  return <MapView range={range} minMagnitude={minMagnitude} />
+}
+
+function FiltersWrapper() {
+  const [range, setRange] = useState('24h')
+  const [minMagnitude, setMinMagnitude] = useState(0)
+  // Keep local state and lift changes via custom events or context later; for now pass directly
+  return <Filters range={range} setRange={setRange} minMagnitude={minMagnitude} setMinMagnitude={setMinMagnitude} />
 }

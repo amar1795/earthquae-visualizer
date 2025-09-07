@@ -16,7 +16,7 @@ function magnitudeRadius(m) {
   return Math.max(4, Math.min(40, m * 4))
 }
 
-export default function MapView() {
+export default function MapView({ range = '24h', minMagnitude = 0 }) {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -24,7 +24,7 @@ export default function MapView() {
   useEffect(() => {
     let mounted = true
     setLoading(true)
-    earthquakesAPI.getEarthquakes({ range: '24h', minMagnitude: 0 }).then(res => {
+    earthquakesAPI.getEarthquakes({ range, minMagnitude }).then(res => {
       if (!mounted) return
       if (res.ok) {
         setData(res.features)
@@ -39,7 +39,7 @@ export default function MapView() {
       setLoading(false)
     })
     return () => { mounted = false }
-  }, [])
+  }, [range, minMagnitude])
 
   return (
     <div className="h-[70vh] w-full rounded-md overflow-hidden shadow" style={{ height: '70vh' }}>
