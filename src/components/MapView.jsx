@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Popup, Marker } from 'react-leaflet'
+import MarkerClusterGroup from 'react-leaflet-cluster'
 import earthquakesAPI from '../api/earthquakes'
 import { formatTimestamp } from '../utils/formatDate'
 
@@ -23,22 +24,41 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
 
   useEffect(() => {
     let mounted = true
+    const controller = new AbortController()
     setLoading(true)
-    earthquakesAPI.getEarthquakes({ range, minMagnitude }).then(res => {
+    setError(null)
+
+    // limit results to avoid DOM overload when switching to 7d/30d
+    const MAX_RESULTS = 1000
+
+    earthquakesAPI.getEarthquakes({ range, minMagnitude, maxResults: MAX_RESULTS, signal: controller.signal }).then(res => {
       if (!mounted) return
       if (res.ok) {
         setData(res.features)
         setError(null)
       } else {
-        setError(res.error || 'Failed to fetch')
+        if (res.error === 'aborted') {
+          // fetch was aborted; don't treat as an error for UI
+          setError(null)
+        } else {
+          setError(res.error || 'Failed to fetch')
+        }
       }
       setLoading(false)
     }).catch(err => {
       if (!mounted) return
-      setError(err.message || String(err))
+      if (err && err.name === 'AbortError') {
+        // aborted intentionally
+        setError(null)
+      } else {
+        setError(err.message || String(err))
+      }
       setLoading(false)
     })
-    return () => { mounted = false }
+    return () => {
+      mounted = false
+      controller.abort()
+    }
   }, [range, minMagnitude])
 
   return (
@@ -58,23 +78,25 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {data.map(eq => (
-          <CircleMarker
-            key={eq.id}
-            center={[eq.coords.lat, eq.coords.lon]}
-            pathOptions={{ color: magnitudeColor(eq.magnitude), fillColor: magnitudeColor(eq.magnitude), fillOpacity: 0.8 }}
-            radius={magnitudeRadius(eq.magnitude)}
-          >
-            <Popup>
-              <div style={{minWidth: 180}}>
-                <strong>{eq.place}</strong>
-                <div>Mag: {eq.magnitude ?? 'N/A'}</div>
-                <div>Depth: {eq.depth ?? 'N/A'} km</div>
-                <div>{formatTimestamp(eq.time)}</div>
-              </div>
-            </Popup>
-          </CircleMarker>
-        ))}
+        <MarkerClusterGroup>
+          {data.map(eq => (
+            <Marker key={eq.id} position={[eq.coords.lat, eq.coords.lon]}>
+              <CircleMarker
+                center={[0, 0]}
+                pathOptions={{ color: magnitudeColor(eq.magnitude), fillColor: magnitudeColor(eq.magnitude), fillOpacity: 0.8 }}
+                radius={magnitudeRadius(eq.magnitude)}
+              />
+              <Popup>
+                <div style={{minWidth: 180}}>
+                  <strong>{eq.place}</strong>
+                  <div>Mag: {eq.magnitude ?? 'N/A'}</div>
+                  <div>Depth: {eq.depth ?? 'N/A'} km</div>
+                  <div>{formatTimestamp(eq.time)}</div>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
       </MapContainer>
 
         {!loading && !error && data.length === 0 && (

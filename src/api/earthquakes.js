@@ -12,18 +12,32 @@ function buildFeedUrl(range) {
   return `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/${feed}.geojson`
 }
 
-async function fetchJson(url, timeout = 15000) {
+async function fetchJson(url, timeout = 15000, externalSignal) {
+  // Create a controller that will be aborted either by timeout or by externalSignal
   const controller = new AbortController()
-  const id = setTimeout(() => controller.abort(), timeout)
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+  const onExternalAbort = () => controller.abort()
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clearTimeout(timeoutId)
+      controller.abort()
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort)
+    }
+  }
+
   try {
     const res = await fetch(url, { signal: controller.signal })
-    clearTimeout(id)
+    clearTimeout(timeoutId)
+    if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort)
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}: ${res.statusText}`)
     }
     return await res.json()
   } catch (err) {
-    clearTimeout(id)
+    clearTimeout(timeoutId)
+    if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort)
     throw err
   }
 }
@@ -46,15 +60,21 @@ function normalizeFeature(feature) {
   }
 }
 
-export async function getEarthquakes({ range = '24h', minMagnitude = 0 } = {}) {
+export async function getEarthquakes({ range = '24h', minMagnitude = 0, maxResults = 500, signal } = {}) {
   const url = buildFeedUrl(range)
   try {
-    const json = await fetchJson(url)
+    const json = await fetchJson(url, 15000, signal)
     const features = (json && json.features) || []
-    const normalized = features.map(normalizeFeature).filter(f => (f.magnitude || 0) >= (minMagnitude || 0))
-    return { ok: true, count: normalized.length, features: normalized }
+    const normalized = features
+      .map(normalizeFeature)
+      .filter(f => (f.magnitude || 0) >= (minMagnitude || 0))
+      // sort by magnitude desc so we show the largest quakes first when we cap
+      .sort((a, b) => (b.magnitude || 0) - (a.magnitude || 0))
+    const capped = typeof maxResults === 'number' ? normalized.slice(0, maxResults) : normalized
+    return { ok: true, count: capped.length, features: capped }
   } catch (error) {
-    return { ok: false, error: error.message || String(error) }
+    // If the fetch was aborted, propagate a recognizable error
+    return { ok: false, error: error && error.name === 'AbortError' ? 'aborted' : (error.message || String(error)) }
   }
 }
 
