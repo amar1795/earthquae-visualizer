@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { MapContainer, TileLayer, CircleMarker, Popup, Marker } from 'react-leaflet'
+import L from 'leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import earthquakesAPI from '../api/earthquakes'
 import { formatTimestamp } from '../utils/formatDate'
@@ -117,9 +118,29 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <MarkerClusterGroup>
+        <MarkerClusterGroup
+          iconCreateFunction={cluster => {
+            try {
+              const children = cluster.getAllChildMarkers() || []
+              const count = children.length
+              // compute max magnitude among child markers (stored in feature ref)
+              let maxMag = 0
+              for (const m of children) {
+                const eq = m && m.feature ? m.feature : m && m.options && m.options.eq
+                const mag = eq && eq.magnitude ? eq.magnitude : (m && m.options && m.options.magnitude) || 0
+                if (mag > maxMag) maxMag = mag
+              }
+              const color = magnitudeColor(maxMag)
+              const size = Math.min(60, 30 + Math.round(Math.log10(Math.max(1, count)) * 8))
+              const html = `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;border:2px solid rgba(255,255,255,0.9);">${count}<div style=\"font-size:10px;font-weight:600;margin-left:6px;\">${maxMag ? maxMag.toFixed(1) : ''}</div></div>`
+              return L.divIcon({ html, className: 'custom-cluster-icon', iconSize: [size, size] })
+            } catch (e) {
+              return undefined
+            }
+          }}
+        >
           {visibleData.map(eq => (
-            <Marker key={eq.id} position={[eq.coords.lat, eq.coords.lon]}>
+            <Marker key={eq.id} position={[eq.coords.lat, eq.coords.lon]} eq={eq} magnitude={eq.magnitude}>
               <CircleMarker
                 center={[0, 0]}
                 pathOptions={{ color: magnitudeColor(eq.magnitude), fillColor: magnitudeColor(eq.magnitude), fillOpacity: 0.8 }}
@@ -159,7 +180,7 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
           </div>
         )}
 
-      <div style={{ position: 'absolute', right: 12, bottom: 12, background: 'white', padding: 8, borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
+  <div aria-hidden={false} role="region" aria-label="Magnitude legend" style={{ position: 'absolute', right: 12, bottom: 12, background: 'white', padding: 8, borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.12)', zIndex: 8000 }}>
         <div style={{ fontSize: 12, fontWeight: 600 }}>Legend</div>
         <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
           <div style={{ width: 12, height: 12, background: '#10b981' }}></div><div style={{fontSize:12}}> &lt;2</div>
