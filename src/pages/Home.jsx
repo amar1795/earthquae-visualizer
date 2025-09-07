@@ -1,6 +1,7 @@
 import React from 'react'
 import MapView from '../components/MapView'
 import Filters from '../components/Filters'
+import Charts from '../components/Charts'
 import { useState } from 'react'
 
 export default function Home() {
@@ -16,6 +17,10 @@ export default function Home() {
 
       <section className="grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
         <aside className="lg:col-span-1">
+          <div className="p-4 bg-white rounded shadow">
+            <Charts range={range} minMagnitude={minMagnitude} />
+          </div>
+          <div style={{ height: 12 }} />
           <div className="p-4 bg-white rounded shadow">
             <Filters range={range} setRange={setRange} minMagnitude={minMagnitude} setMinMagnitude={setMinMagnitude} />
           </div>
