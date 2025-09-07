@@ -32,6 +32,10 @@ export default function Home() {
           </header>
         </div>
 
+        <div>
+          <Filters range={range} setRange={setRange} minMagnitude={minMagnitude} setMinMagnitude={setMinMagnitude} />
+        </div>
+
       <section className="grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
         
         
