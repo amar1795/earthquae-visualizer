@@ -27,7 +27,7 @@ export default function Filters({ range, setRange, minMagnitude, setMinMagnitude
 
   return (
     <div style={{ padding: 12 }}>
-      {/* <div style={{ marginBottom: 12 }}>
+      <div style={{ marginBottom: 12 }}>
         <div style={{ fontWeight: 600, marginBottom: 8 }}>Time range</div>
         <div style={{ display: 'flex', gap: 8 }}>
           {ranges.map(r => (
@@ -47,7 +47,7 @@ export default function Filters({ range, setRange, minMagnitude, setMinMagnitude
             </button>
           ))}
         </div>
-      </div> */}
+      </div>
 
       <div >
         <div style={{ fontWeight: 600, marginBottom: 8 }}>Minimum magnitude</div>
