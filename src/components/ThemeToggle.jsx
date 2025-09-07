@@ -33,7 +33,9 @@ export default function ThemeToggle() {
         onChange={() => setIsDark(v => !v)}
       />
       <span className="switch" aria-hidden>
+        <span className="icon-left" aria-hidden>☀️</span>
         <span className="knob" />
+        <span className="icon-right" aria-hidden>🌙</span>
       </span>
     </label>
   )
