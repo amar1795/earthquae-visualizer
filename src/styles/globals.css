@@ -36,3 +36,7 @@ h1 {
 .eq-legend .swatch { width:12px; height:12px; border-radius:2px }
 .eq-legend.collapsed { padding:6px 8px; width:40px; height:40px; display:flex; align-items:center; justify-content:center }
 .eq-legend .toggle { background:transparent;border:none;cursor:pointer;padding:4px }
+
+/* heatmap legend */
+.heat-legend { position: absolute; right: 12px; top: 12px; background: white; padding: 8px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.12); z-index: 8000 }
+.heat-legend .bar { height: 10px; border-radius: 4px; background: linear-gradient(90deg, rgba(16,185,129,1), rgba(236,72,153,1)); }

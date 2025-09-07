@@ -27,6 +27,10 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
   const [renderAll, setRenderAll] = useState(false)
   const [renderProgress, setRenderProgress] = useState(0)
   const [legendCollapsed, setLegendCollapsed] = useState(false)
+  const [showHeatmap, setShowHeatmap] = useState(false)
+  const [heatRadius, setHeatRadius] = useState(25)
+  const [heatBlur, setHeatBlur] = useState(15)
+  const [heatScale, setHeatScale] = useState(1)
 
   useEffect(() => {
     let mounted = true
@@ -121,8 +125,12 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
         />
 
         {/* heatmap mode */}
-        {renderAll && visibleData.length > 0 && (
-          <HeatmapLayer points={visibleData.map(d => ({ lat: d.coords.lat, lng: d.coords.lon, intensity: Math.max(0.1, (d.magnitude || 0) / 8) }))} />
+        {showHeatmap && visibleData.length > 0 && (
+          <HeatmapLayer
+            points={visibleData.map(d => ({ lat: d.coords.lat, lng: d.coords.lon, intensity: Math.max(0.01, ((d.magnitude || 0) / 8) * heatScale) }))}
+            radius={heatRadius}
+            blur={heatBlur}
+          />
         )}
 
         <MarkerClusterGroup
@@ -168,11 +176,25 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
 
       {/* heatmap toggle */}
       {!loading && !error && data.length > 0 && (
-        <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 7000, background: 'rgba(255,255,255,0.95)', padding: 8, borderRadius: 8 }}>
-          <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <input type="checkbox" checked={renderAll} onChange={e => setRenderAll(e.target.checked)} />
-            <span style={{ fontSize: 12 }}>Heatmap</span>
-          </label>
+        <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 7000, background: 'rgba(255,255,255,0.95)', padding: 8, borderRadius: 8, minWidth: 220 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'space-between' }}>
+            <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input type="checkbox" checked={showHeatmap} onChange={e => setShowHeatmap(e.target.checked)} />
+              <span style={{ fontSize: 12 }}>Heatmap</span>
+            </label>
+            <div style={{ fontSize: 12, color: '#6b7280' }}>{visibleData.length} points</div>
+          </div>
+
+          {showHeatmap && (
+            <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>Radius: {heatRadius}</div>
+              <input type="range" min="5" max="60" value={heatRadius} onChange={e => setHeatRadius(Number(e.target.value))} />
+              <div style={{ fontSize: 12, fontWeight: 600 }}>Blur: {heatBlur}</div>
+              <input type="range" min="5" max="40" value={heatBlur} onChange={e => setHeatBlur(Number(e.target.value))} />
+              <div style={{ fontSize: 12, fontWeight: 600 }}>Intensity scale: {heatScale.toFixed(2)}</div>
+              <input type="range" min="0.1" max="3" step="0.1" value={heatScale} onChange={e => setHeatScale(Number(e.target.value))} />
+            </div>
+          )}
         </div>
       )}
 
