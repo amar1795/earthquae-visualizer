@@ -883,7 +883,7 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
           top: 0, 
           right: 0, 
           bottom: 0, 
-          background: 'rgba(0,0,0,0.4)', 
+          background: '(0,0,0,0.4)', 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
@@ -891,8 +891,9 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
           padding: '16px'
         }}>
           {/* Modal Content container made responsive */}
-          <div style={{ 
-            background: 'var(--panel-bg)', 
+          <div
+          className='flex items-center justify-center'
+          style={{ 
             color: 'var(--panel-text)',
             borderRadius: '8px',
             padding: '20px',
