@@ -4,6 +4,29 @@
   --text: #0f172a;
 }
 
+/* Dark theme variables applied when document.documentElement has .dark */
+.dark {
+  --bg: #0b1220;
+  --text: #e6eef8;
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  z-index: 9000;
+  font-size: 16px;
+}
+
+.dark .theme-toggle {
+  border-color: rgba(255,255,255,0.12);
+}
 html,body,#root {
   height: 100%;
   margin: 0;

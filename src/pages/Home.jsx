@@ -2,6 +2,7 @@ import React from 'react'
 import MapView from '../components/MapView'
 import Filters from '../components/Filters'
 import Charts from '../components/Charts'
+import ThemeToggle from '../components/ThemeToggle'
 import { useState } from 'react'
 
 export default function Home() {
@@ -16,7 +17,8 @@ export default function Home() {
     <main className="p-6 font-sans" style={{ padding: '1.5rem', fontFamily: 'Arial, sans-serif' }}>
 
         <div className=" p-4 sm:py-6 rounded mb-4 w-full flex items-center justify-center">
-          <header className="mb-0 w-full max-w-4xl px-2">
+          <header className="mb-0 w-full max-w-4xl px-2" style={{ position: 'relative' }}>
+            <ThemeToggle />
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-center uppercase tracking-tight" style={{ margin: 0 }}>
               <span className="hidden sm:inline-block mr-2" aria-hidden="true">🌍</span>
               Earthquake Visualizer
