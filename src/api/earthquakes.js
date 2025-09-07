@@ -7,6 +7,10 @@ const RANGE_TO_FEED = {
   '30d': 'all_month' // ~30 days
 }
 
+// Simple in-memory cache with TTL to avoid refetching the same feed repeatedly
+const _cache = new Map() // key -> { ts, features }
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 function buildFeedUrl(range) {
   const feed = RANGE_TO_FEED[range] || RANGE_TO_FEED['24h']
   return `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/${feed}.geojson`
@@ -62,6 +66,13 @@ function normalizeFeature(feature) {
 
 export async function getEarthquakes({ range = '24h', minMagnitude = 0, maxResults = 500, signal } = {}) {
   const url = buildFeedUrl(range)
+  const cacheKey = `${url}|min:${minMagnitude}`
+  const now = Date.now()
+  const cached = _cache.get(cacheKey)
+  if (cached && (now - cached.ts) < CACHE_TTL) {
+    const capped = typeof maxResults === 'number' ? cached.features.slice(0, maxResults) : cached.features
+    return { ok: true, count: capped.length, features: capped, fromCache: true }
+  }
   try {
     const json = await fetchJson(url, 15000, signal)
     const features = (json && json.features) || []
@@ -70,6 +81,23 @@ export async function getEarthquakes({ range = '24h', minMagnitude = 0, maxResul
       .filter(f => (f.magnitude || 0) >= (minMagnitude || 0))
       // sort by magnitude desc so we show the largest quakes first when we cap
       .sort((a, b) => (b.magnitude || 0) - (a.magnitude || 0))
+    // store full normalized list in cache (uncapped)
+    try {
+      _cache.set(cacheKey, { ts: Date.now(), features: normalized })
+      // keep cache size reasonable
+      if (_cache.size > 50) {
+        // drop oldest
+        let oldestKey = null
+        let oldestTs = Infinity
+        for (const [k, v] of _cache.entries()) {
+          if (v.ts < oldestTs) { oldestTs = v.ts; oldestKey = k }
+        }
+        if (oldestKey) _cache.delete(oldestKey)
+      }
+    } catch (e) {
+      // ignore cache set failures
+    }
+
     const capped = typeof maxResults === 'number' ? normalized.slice(0, maxResults) : normalized
     return { ok: true, count: capped.length, features: capped }
   } catch (error) {

@@ -19,8 +19,11 @@ function magnitudeRadius(m) {
 
 export default function MapView({ range = '24h', minMagnitude = 0 }) {
   const [data, setData] = useState([])
+  const [visibleData, setVisibleData] = useState([]) // data rendered so far
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [renderAll, setRenderAll] = useState(false)
+  const [renderProgress, setRenderProgress] = useState(0)
 
   useEffect(() => {
     let mounted = true
@@ -29,16 +32,19 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
     setError(null)
 
     // limit results to avoid DOM overload when switching to 7d/30d
-    const MAX_RESULTS = 1000
+    const MAX_RESULTS = 2000
 
     earthquakesAPI.getEarthquakes({ range, minMagnitude, maxResults: MAX_RESULTS, signal: controller.signal }).then(res => {
       if (!mounted) return
       if (res.ok) {
         setData(res.features)
         setError(null)
+        // reset progressive render state
+        setVisibleData([])
+        setRenderProgress(0)
+        setRenderAll(false)
       } else {
         if (res.error === 'aborted') {
-          // fetch was aborted; don't treat as an error for UI
           setError(null)
         } else {
           setError(res.error || 'Failed to fetch')
@@ -48,7 +54,6 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
     }).catch(err => {
       if (!mounted) return
       if (err && err.name === 'AbortError') {
-        // aborted intentionally
         setError(null)
       } else {
         setError(err.message || String(err))
@@ -60,6 +65,40 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
       controller.abort()
     }
   }, [range, minMagnitude])
+
+  // progressive batch renderer
+  useEffect(() => {
+    let cancelled = false
+    if (!data || data.length === 0) {
+      setVisibleData([])
+      setRenderProgress(0)
+      return
+    }
+
+    if (renderAll) {
+      setVisibleData(data)
+      setRenderProgress(100)
+      return
+    }
+
+    const BATCH = 100
+    let index = 0
+
+    function renderBatch() {
+      if (cancelled) return
+      const next = data.slice(index, index + BATCH)
+      setVisibleData(prev => prev.concat(next))
+      index += BATCH
+      setRenderProgress(Math.min(100, Math.round((index / data.length) * 100)))
+      if (index < data.length) {
+        // yield to main thread
+        setTimeout(renderBatch, 50)
+      }
+    }
+
+    renderBatch()
+    return () => { cancelled = true }
+  }, [data, renderAll])
 
   return (
     <div className="h-[70vh] w-full rounded-md overflow-hidden shadow" style={{ height: '70vh', position: 'relative' }}>
@@ -79,7 +118,7 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
         />
 
         <MarkerClusterGroup>
-          {data.map(eq => (
+          {visibleData.map(eq => (
             <Marker key={eq.id} position={[eq.coords.lat, eq.coords.lon]}>
               <CircleMarker
                 center={[0, 0]}
@@ -106,6 +145,19 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
         )}
 
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+        {/* render progress UI */}
+        {!loading && !error && data.length > 0 && (
+          <div style={{ position: 'absolute', left: 12, bottom: 12, zIndex: 7000, background: 'rgba(255,255,255,0.95)', padding: 8, borderRadius: 8 }}>
+            <div style={{ fontSize: 12, marginBottom: 6 }}>
+              Rendering markers: {renderProgress}% ({visibleData.length}/{data.length})
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setRenderAll(true)} style={{ padding: '6px 8px', borderRadius: 6, background: '#ef4444', color: 'white', border: 'none', cursor: 'pointer' }}>Render all</button>
+              <button onClick={() => { setVisibleData([]); setRenderProgress(0); setRenderAll(false); }} style={{ padding: '6px 8px', borderRadius: 6, background: '#e5e7eb', border: 'none', cursor: 'pointer' }}>Reset</button>
+            </div>
+          </div>
+        )}
 
       <div style={{ position: 'absolute', right: 12, bottom: 12, background: 'white', padding: 8, borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
         <div style={{ fontSize: 12, fontWeight: 600 }}>Legend</div>
