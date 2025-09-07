@@ -7,7 +7,9 @@ const RANGE_TO_FEED = {
   '30d': 'all_month' // ~30 days
 }
 
-// Simple in-memory cache with TTL to avoid refetching the same feed repeatedly
+import cache from '../lib/cache'
+
+// Keep an in-memory cache as well for fastest hits within the session
 const _cache = new Map() // key -> { ts, features }
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
@@ -68,10 +70,24 @@ export async function getEarthquakes({ range = '24h', minMagnitude = 0, maxResul
   const url = buildFeedUrl(range)
   const cacheKey = `${url}|min:${minMagnitude}`
   const now = Date.now()
+  // check in-memory cache first
   const cached = _cache.get(cacheKey)
   if (cached && (now - cached.ts) < CACHE_TTL) {
     const capped = typeof maxResults === 'number' ? cached.features.slice(0, maxResults) : cached.features
     return { ok: true, count: capped.length, features: capped, fromCache: true }
+  }
+
+  // then check persistent cache (IndexedDB via localforage)
+  try {
+    const persistent = await cache.getCache(cacheKey)
+    if (persistent && Array.isArray(persistent)) {
+      // warm the in-memory cache
+      _cache.set(cacheKey, { ts: Date.now(), features: persistent })
+      const capped = typeof maxResults === 'number' ? persistent.slice(0, maxResults) : persistent
+      return { ok: true, count: capped.length, features: capped, fromCache: true }
+    }
+  } catch (e) {
+    // ignore persistent cache failures
   }
   try {
     const json = await fetchJson(url, 15000, signal)
@@ -84,6 +100,9 @@ export async function getEarthquakes({ range = '24h', minMagnitude = 0, maxResul
     // store full normalized list in cache (uncapped)
     try {
       _cache.set(cacheKey, { ts: Date.now(), features: normalized })
+      // persist to IndexedDB with TTL
+      cache.setCache(cacheKey, normalized, CACHE_TTL).catch(() => {})
+
       // keep cache size reasonable
       if (_cache.size > 50) {
         // drop oldest
