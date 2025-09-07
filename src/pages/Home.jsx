@@ -33,7 +33,7 @@ export default function Home() {
           <MapView range={range} minMagnitude={minMagnitude} selectedId={selectedId} setSelectedId={setSelectedId} highlightedIds={highlightedIds} />
         </div>
         <aside className="lg:col-span-1">
-            <div className="p-4 bg-white rounded shadow">
+            <div className="p-4 rounded shadow" style={{ background: 'var(--panel-bg)', color: 'var(--panel-text)' }}>
             <Charts range={range} minMagnitude={minMagnitude} selectedId={selectedId} setSelectedId={setSelectedId} setHighlightedIds={setHighlightedIds} />
           </div>
           <div style={{ height: 12 }} />

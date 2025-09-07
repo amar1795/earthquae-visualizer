@@ -45,27 +45,27 @@ export default function Charts({ range = '24h', minMagnitude = 0, selectedId = n
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <div style={{ height: 140 }}>
+      <div style={{ height: 140, background: 'var(--panel-bg)', color: 'var(--panel-text)', padding: 8, borderRadius: 8 }}>
         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Events over time</div>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={timeline}>
-            <XAxis dataKey="time" tick={{ fontSize: 10 }} />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="count" stroke="#2563eb" dot={false} />
+          <LineChart className="recharts-wrapper" data={timeline}>
+            <XAxis dataKey="time" tick={{ fontSize: 10, fill: 'var(--panel-text)' }} axisLine={{ stroke: 'var(--grid)' }} tickLine={false} />
+            <YAxis tick={{ fill: 'var(--panel-text)' }} axisLine={{ stroke: 'var(--grid)' }} tickLine={false} />
+            <Tooltip contentStyle={{ backgroundColor: 'var(--panel-bg)', color: 'var(--panel-text)', border: '1px solid var(--grid)' }} labelStyle={{ color: 'var(--panel-text)' }} itemStyle={{ color: 'var(--panel-text)' }} />
+            <Line type="monotone" dataKey="count" stroke="var(--chart-line)" dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
-      <div style={{ height: 140 }}>
+      <div style={{ height: 140, background: 'var(--panel-bg)', color: 'var(--panel-text)', padding: 8, borderRadius: 8 }}>
         <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Magnitude distribution</div>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={histogram}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="bucket" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="count" fill="#ef4444"
+          <BarChart className="recharts-wrapper" data={histogram}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--grid)" />
+            <XAxis dataKey="bucket" tick={{ fill: 'var(--panel-text)' }} axisLine={{ stroke: 'var(--grid)' }} tickLine={false} />
+            <YAxis tick={{ fill: 'var(--panel-text)' }} axisLine={{ stroke: 'var(--grid)' }} tickLine={false} />
+            <Tooltip contentStyle={{ backgroundColor: 'var(--panel-bg)', color: 'var(--panel-text)', border: '1px solid var(--grid)' }} labelStyle={{ color: 'var(--panel-text)' }} itemStyle={{ color: 'var(--panel-text)' }} />
+            <Bar dataKey="count" fill="var(--chart-bar)"
               onMouseEnter={(entry, index) => {
                 const ids = entry && entry.payload && entry.payload.ids ? entry.payload.ids : []
                 setHighlightedIds(ids)

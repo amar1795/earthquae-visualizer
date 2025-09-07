@@ -5,6 +5,11 @@
   /* panel colors (cards, overlays) */
   --panel-bg: rgba(255,255,255,0.97);
   --panel-text: var(--text);
+  /* chart/grid color */
+  --grid: rgba(2,6,23,0.06);
+  /* chart colors */
+  --chart-line: #2563eb; /* blue */
+  --chart-bar: #ef4444; /* red */
 }
 
 /* Dark theme variables applied when document.documentElement has .dark */
@@ -13,7 +18,21 @@
   --text: #e6eef8;
   --panel-bg: rgba(9,15,24,0.85);
   --panel-text: #e6eef8;
+  --grid: rgba(255,255,255,0.06);
+  --chart-line: #7dd3fc; /* light cyan for dark bg */
+  --chart-bar: #fb7185; /* lighter pink/red for dark bg */
 }
+
+/* Recharts overrides so SVG axes, grid lines and tooltips follow theme variables */
+.recharts-wrapper { color: var(--panel-text); }
+.recharts-surface { color: var(--panel-text); }
+.recharts-cartesian-grid-line { stroke: var(--grid) !important; }
+.recharts-xaxis-tick text, .recharts-yaxis-tick text { fill: var(--panel-text) !important; }
+.recharts-tooltip-wrapper .recharts-default-tooltip,
+.recharts-tooltip-wrapper { background: var(--panel-bg) !important; color: var(--panel-text) !important; border: 1px solid var(--grid) !important; }
+.recharts-tooltip-label { color: var(--panel-text) !important; }
+.recharts-legend-wrapper { color: var(--panel-text) !important; }
+
 
 /* Theme switch (track + knob) */
 .theme-switch {
