@@ -97,6 +97,16 @@
 .theme-switch .icon-right { right: 6px; top: 50%; transform: translateY(-50%); opacity: 0.35 }
 .theme-switch input:checked + .switch .icon-left { opacity: 0.35; transform: translateY(-50%) translateX(-2px); }
 .theme-switch input:checked + .switch .icon-right { opacity: 1; transform: translateY(-50%) translateX(2px); }
+
+/* Header toggle placement: absolute on larger screens, stacked below heading on small screens */
+.app-header { display: flex; flex-direction: column; align-items: center; position: relative; }
+.app-header .header-toggle { position: absolute; right: 12px; top: 12px; }
+
+@media (max-width: 767px) {
+  .app-header { align-items: stretch; }
+  .app-header .header-toggle { position: static; margin-top: 12px; display: flex; justify-content: center; }
+  .theme-switch { position: static; right: auto; top: auto; }
+}
 html,body,#root {
   height: 100%;
   margin: 0;
