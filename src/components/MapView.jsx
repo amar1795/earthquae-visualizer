@@ -42,9 +42,16 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
   }, [range, minMagnitude])
 
   return (
-    <div className="h-[70vh] w-full rounded-md overflow-hidden shadow" style={{ height: '70vh' }}>
-      {loading && <div style={{padding: 12}}>Loading earthquakes...</div>}
-      {error && <div style={{padding: 12, color: 'red'}}>Error: {error}</div>}
+    <div className="h-[70vh] w-full rounded-md overflow-hidden shadow" style={{ height: '70vh', position: 'relative' }}>
+      {loading && (
+        <div style={{position:'absolute', left:12, top:12, zIndex:6000, background:'rgba(255,255,255,0.95)', padding:10, borderRadius:8}}>
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <div style={{width:16,height:16,border:'3px solid #cbd5e1',borderTopColor:'#2563eb',borderRadius:999,animation:'spin 1s linear infinite'}} />
+            <div style={{fontSize:13}}>Loading earthquakes...</div>
+          </div>
+        </div>
+      )}
+      {error && <div style={{position:'absolute', left:12, top:12, zIndex:6000, background:'rgba(255,255,255,0.95)', padding:10, borderRadius:8, color:'red'}}>Error: {error}</div>}
       <MapContainer center={[20, 0]} zoom={2} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -69,6 +76,14 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
           </CircleMarker>
         ))}
       </MapContainer>
+
+        {!loading && !error && data.length === 0 && (
+          <div style={{position:'absolute', left:'50%', top:'48%', transform:'translate(-50%,-50%)', zIndex:6000, background:'rgba(255,255,255,0.95)', padding:16, borderRadius:8}}>
+            No earthquakes match this filter.
+          </div>
+        )}
+
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       <div style={{ position: 'absolute', right: 12, bottom: 12, background: 'white', padding: 8, borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
         <div style={{ fontSize: 12, fontWeight: 600 }}>Legend</div>
