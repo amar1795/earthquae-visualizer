@@ -20,18 +20,20 @@ export default function Home() {
       </header>
 
       <section className="grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
+        <div className="p-4 bg-white rounded shadow">
+            <Filters range={range} setRange={setRange} minMagnitude={minMagnitude} setMinMagnitude={setMinMagnitude} />
+          </div>
+        
+        <div className="lg:col-span-3">
+          <MapView range={range} minMagnitude={minMagnitude} selectedId={selectedId} setSelectedId={setSelectedId} highlightedIds={highlightedIds} />
+        </div>
         <aside className="lg:col-span-1">
             <div className="p-4 bg-white rounded shadow">
             <Charts range={range} minMagnitude={minMagnitude} selectedId={selectedId} setSelectedId={setSelectedId} setHighlightedIds={setHighlightedIds} />
           </div>
           <div style={{ height: 12 }} />
-          <div className="p-4 bg-white rounded shadow">
-            <Filters range={range} setRange={setRange} minMagnitude={minMagnitude} setMinMagnitude={setMinMagnitude} />
-          </div>
+          
         </aside>
-        <div className="lg:col-span-3">
-          <MapView range={range} minMagnitude={minMagnitude} selectedId={selectedId} setSelectedId={setSelectedId} highlightedIds={highlightedIds} />
-        </div>
       </section>
     </main>
   )
