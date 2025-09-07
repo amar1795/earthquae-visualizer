@@ -40,7 +40,7 @@ export default function CacheInspector(props) {
       <div style={{ marginTop: 8, fontSize: 13 }}>
         {loading && 'Loading...'}
         {error && <div style={{ color: 'red' }}>{error}</div>}
-        {!loading && !error && (keys.length === 0 ? 'No cache entries' : (
+        {!loading && !error && (keys.length === 0 ? 'No cache to delete' : (
           <ul style={{ maxHeight: 220, overflow: 'auto', paddingLeft: 14 }}>
             {keys.map(k => <li key={k} style={{ marginBottom: 6, wordBreak: 'break-all' }}>{k}</li>)}
           </ul>
@@ -48,7 +48,7 @@ export default function CacheInspector(props) {
       </div>
 
       <div style={{ marginTop: 10, display: 'flex', gap: 8 }}>
-        <button onClick={() => setShowConfirm(true)} disabled={clearing} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 10px', borderRadius: 6, cursor: 'pointer' }}>{clearing ? 'Clearing...' : 'Clear all'}</button>
+        <button onClick={() => { if (!loading && keys.length > 0) setShowConfirm(true) }} disabled={clearing || loading || keys.length === 0} title={keys.length === 0 ? 'No cache entries' : undefined} style={{ background: (clearing || loading || keys.length === 0) ? '#9ca3af' : '#ef4444', color: 'white', border: 'none', padding: '8px 10px', borderRadius: 6, cursor: (clearing || loading || keys.length === 0) ? 'not-allowed' : 'pointer' }}>{clearing ? 'Clearing...' : (keys.length > 0 ? `Clear all (${keys.length})` : 'Clear all')}</button>
         <button onClick={onClose || (() => {})} style={{ background: '#e5e7eb', border: 'none', padding: '8px 10px', borderRadius: 6, cursor: 'pointer' }}>Close</button>
       </div>
 
