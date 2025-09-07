@@ -28,6 +28,7 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
   const [renderProgress, setRenderProgress] = useState(0)
   const [legendCollapsed, setLegendCollapsed] = useState(false)
   const [showClusters, setShowClusters] = useState(true)
+  const [showClusterPopover, setShowClusterPopover] = useState(false)
   const [showHeatmap, setShowHeatmap] = useState(false)
   const [heatRadius, setHeatRadius] = useState(25)
   const [heatBlur, setHeatBlur] = useState(15)
@@ -238,7 +239,21 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
         </div>
       ) : (
         <div style={{ position: 'absolute', left: 12, bottom: 80, zIndex: 8000 }}>
-          <button aria-label="Show clusters" title="Show clusters" onClick={() => setShowClusters(true)} style={{ background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>⚠</button>
+          <button aria-label="Show clusters" title="Show clusters" onClick={() => setShowClusterPopover(prev => !prev)} style={{ background: '#f97316', color: 'white', border: 'none', borderRadius: 8, padding: '8px 10px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.15)' }}>⚠</button>
+          {showClusterPopover && (
+            <div role="dialog" aria-label="Cluster controls" style={{ marginTop: 8, background: 'white', padding: 8, borderRadius: 8, boxShadow: '0 6px 18px rgba(0,0,0,0.12)', width: 220 }}>
+              <div style={{ fontWeight: 600, marginBottom: 6 }}>Clusters are hidden</div>
+              <div style={{ fontSize: 13, color: '#374151', marginBottom: 8 }}>Toggle clusters on to restore clustered markers.</div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={showClusters}
+                  onChange={e => { setShowClusters(!!e.target.checked); setShowClusterPopover(false); }}
+                />
+                <span style={{ fontSize: 13 }}>Show clusters</span>
+              </label>
+            </div>
+          )}
         </div>
       )}
 
