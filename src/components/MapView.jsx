@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, CircleMarker, Popup, Marker } from 'react-leaf
 import L from 'leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import earthquakesAPI from '../api/earthquakes'
+import HeatmapLayer from './HeatmapLayer'
 import { formatTimestamp } from '../utils/formatDate'
 
 function magnitudeColor(m) {
@@ -119,6 +120,11 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
+        {/* heatmap mode */}
+        {renderAll && visibleData.length > 0 && (
+          <HeatmapLayer points={visibleData.map(d => ({ lat: d.coords.lat, lng: d.coords.lon, intensity: Math.max(0.1, (d.magnitude || 0) / 8) }))} />
+        )}
+
         <MarkerClusterGroup
           iconCreateFunction={cluster => {
             try {
@@ -159,6 +165,16 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
           ))}
         </MarkerClusterGroup>
       </MapContainer>
+
+      {/* heatmap toggle */}
+      {!loading && !error && data.length > 0 && (
+        <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 7000, background: 'rgba(255,255,255,0.95)', padding: 8, borderRadius: 8 }}>
+          <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input type="checkbox" checked={renderAll} onChange={e => setRenderAll(e.target.checked)} />
+            <span style={{ fontSize: 12 }}>Heatmap</span>
+          </label>
+        </div>
+      )}
 
         {!loading && !error && data.length === 0 && (
           <div style={{position:'absolute', left:'50%', top:'48%', transform:'translate(-50%,-50%)', zIndex:6000, background:'rgba(255,255,255,0.95)', padding:16, borderRadius:8}}>
