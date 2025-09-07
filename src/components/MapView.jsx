@@ -127,13 +127,16 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
         />
 
         {/* heatmap mode */}
-        {showHeatmap && visibleData.length > 0 && (
-          <HeatmapLayer
-            points={visibleData.map(d => ({ lat: d.coords.lat, lng: d.coords.lon, intensity: Math.max(0.01, ((d.magnitude || 0) / 8) * heatScale) }))}
-            radius={heatRadius}
-            blur={heatBlur}
-          />
-        )}
+        {showHeatmap && visibleData.length > 0 && (() => {
+          const points = visibleData.map(d => ({ lat: d.coords.lat, lng: d.coords.lon, intensity: Math.max(0.01, ((d.magnitude || 0) / 8) * heatScale) }))
+          // compute max intensity for legend
+          const maxIntensity = points.reduce((max, p) => Math.max(max, p.intensity || 0), 0) || 1
+          // gradient mapping: green -> yellow -> red
+          const gradient = { 0.0: 'rgba(16,185,129,0.9)', 0.5: 'rgba(250,204,21,0.95)', 1.0: 'rgba(239,68,68,0.95)' }
+          return (
+            <HeatmapLayer points={points} radius={heatRadius} blur={heatBlur} gradient={gradient} maxIntensity={maxIntensity} />
+          )
+        })()}
 
   {showClusters && (
   <MarkerClusterGroup
@@ -209,16 +212,20 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
       )}
 
       {/* heatmap legend bar */}
-      {showHeatmap && (
-        <div className="heat-legend" style={{ right: '12px', left: 'auto', top: 12 }} aria-hidden={false} role="img" aria-label="Heatmap intensity legend">
-          <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Intensity</div>
-          <div className="bar" style={{ width: 140 }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginTop: 6 }}>
-            <div>Low</div>
-            <div>High</div>
+      {showHeatmap && (() => {
+        const points = visibleData.map(d => Math.max(0.01, ((d.magnitude || 0) / 8) * heatScale))
+        const maxIntensity = points.reduce((m, v) => Math.max(m, v), 0) || 1
+        return (
+          <div className="heat-legend" style={{ right: '12px', left: 'auto', top: 12 }} aria-hidden={false} role="img" aria-label="Heatmap intensity legend">
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Intensity</div>
+            <div className="bar" style={{ width: 140 }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginTop: 6 }}>
+              <div>0</div>
+              <div>{maxIntensity.toFixed(2)}</div>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* cluster legend explaining icon (collapsible). When closed, show an exclamation button to reopen. */}
       {showClusters ? (
