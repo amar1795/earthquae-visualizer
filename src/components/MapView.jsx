@@ -6,6 +6,7 @@ import earthquakesAPI from '../api/earthquakes'
 import HeatmapLayer from './HeatmapLayer'
 import { formatTimestamp } from '../utils/formatDate'
 import cacheLib from '../lib/cache'
+import CacheInspector from './CacheInspector'
 
 function magnitudeColor(m) {
   if (m >= 6) return '#b91c1c' // red
@@ -46,6 +47,8 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
   const [heatBlur, setHeatBlur] = useState(15)
   const [heatScale, setHeatScale] = useState(1)
   const [fromCache, setFromCache] = useState(false)
+  const [toast, setToast] = useState(null)
+  const [showInspector, setShowInspector] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -157,6 +160,7 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
   }, [data, renderAll])
 
   return (
+    <>
     <div className="h-[70vh] w-full rounded-md overflow-hidden shadow" style={{ height: '70vh', position: 'relative' }}>
       {loading && (
         <div style={{position:'absolute', left:12, top:12, zIndex:6000, background:'rgba(255,255,255,0.95)', padding:10, borderRadius:8}}>
@@ -260,7 +264,8 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div style={{ fontSize: 12, color: '#6b7280' }}>{visibleData.length} points</div>
                 <div style={{ fontSize: 12, padding: '2px 6px', borderRadius: 6, background: fromCache ? '#e6fffa' : '#eef2ff', color: fromCache ? '#0f766e' : '#3730a3' }}>{fromCache ? 'Cached' : 'Live'}</div>
-                <button onClick={async () => { await cacheLib.removeCache(`${buildFeedUrl(range)}|min:${minMagnitude}`); setFromCache(false); alert('Cache cleared for current feed') }} style={{ marginLeft: 6, background: '#ef4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: 6, cursor: 'pointer' }}>Clear Cache</button>
+                <button onClick={async () => { await cacheLib.removeCache(`${buildFeedUrl(range)}|min:${minMagnitude}`); setFromCache(false); setToast('Cache cleared for current feed'); setTimeout(() => setShowInspector(false), 250) }} style={{ marginLeft: 6, background: '#ef4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: 6, cursor: 'pointer' }}>Clear Cache</button>
+                <button onClick={() => setShowInspector(prev => !prev)} style={{ marginLeft: 6, background: '#6b7280', color: 'white', border: 'none', padding: '4px 8px', borderRadius: 6, cursor: 'pointer' }}>{showInspector ? 'Close Cache' : 'Inspect Cache'}</button>
               </div>
             </div>
           )}
@@ -368,6 +373,28 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
           <button className="toggle" aria-label="Expand legend" onClick={() => setLegendCollapsed(false)}>▸</button>
         )}
       </div>
-    </div>
+  </div>
+  {/* toast */}
+    {toast && (
+      <div style={{ position: 'fixed', right: 12, bottom: 12, zIndex: 20000, background: 'rgba(17,24,39,0.95)', color: 'white', padding: 10, borderRadius: 8 }}>
+        {toast}
+        <button onClick={() => setToast(null)} style={{ marginLeft: 8, background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>✕</button>
+      </div>
+    )}
+
+    {/* Cache inspector panel */}
+    {showInspector && (
+      <div style={{ position: 'absolute', right: 12, top: 80, zIndex: 20000 }}>
+        <CacheInspector onClose={() => setShowInspector(false)} onClearAll={(err, removed) => {
+          if (err) {
+            setToast('Failed to clear cache')
+            return
+          }
+          setToast(`${removed || 0} cache entries removed`)
+          setShowInspector(false)
+        }} />
+      </div>
+    )}
+    </>
   )
 }

@@ -35,4 +35,24 @@ export async function removeCache(key) {
   try { await localforage.removeItem(key) } catch (e) { /* ignore */ }
 }
 
-export default { getCache, setCache, removeCache }
+export async function getKeys() {
+  try {
+    const keys = await localforage.keys()
+    return keys || []
+  } catch (e) {
+    return []
+  }
+}
+
+export async function clearAll() {
+  try {
+    const keys = await localforage.keys()
+    if (!keys || keys.length === 0) return 0
+    await Promise.all(keys.map(k => localforage.removeItem(k)))
+    return keys.length
+  } catch (e) {
+    throw e
+  }
+}
+
+export default { getCache, setCache, removeCache, getKeys, clearAll }
