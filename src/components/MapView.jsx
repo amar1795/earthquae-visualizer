@@ -21,6 +21,22 @@ function useDebounce(value, delay) {
   return debouncedValue
 }
 
+// START: Mobile Responsiveness Hook
+// A simple hook to detect viewport size and determine if the view is mobile.
+function useViewport() {
+  const [width, setWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleWindowResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleWindowResize);
+    return () => window.removeEventListener("resize", handleWindowResize);
+  }, []);
+
+  // Use 768px as the breakpoint for mobile devices
+  return { width, isMobile: width < 768 };
+}
+// END: Mobile Responsiveness Hook
+
 // Advanced Canvas-based Heatmap Component
 function CanvasHeatmap({ points, radius = 25, blur = 15, gradient, maxIntensity = 1 }) {
   const map = useMap()
@@ -380,6 +396,7 @@ function getSmartRenderingLimit(zoom, totalCount, performance = 'auto') {
 }
 
 export default function MapView({ range = '24h', minMagnitude = 0, selectedId = null, setSelectedId = () => {}, highlightedIds = [] }) {
+  const { isMobile } = useViewport(); // <-- Use the viewport hook
   const [allData, setAllData] = useState([])
   const [viewportBounds, setViewportBounds] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -393,7 +410,7 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
   const [heatRadius, setHeatRadius] = useState(25)
   const [heatBlur, setHeatBlur] = useState(15)
   const [heatScale, setHeatScale] = useState(1)
-  const [legendCollapsed, setLegendCollapsed] = useState(false)
+  const [legendCollapsed, setLegendCollapsed] = useState(isMobile); // <-- Default to collapsed on mobile
   const [fromCache, setFromCache] = useState(false)
   const [toast, setToast] = useState(null)
   const [showInspector, setShowInspector] = useState(false)
@@ -561,6 +578,41 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
     const density = visibleData.length / Math.max(1, Math.pow(2, zoom))
     return density > 10 && visibleData.length > 200
   }, [renderingMode, viewportBounds, visibleData.length])
+
+  // START: Responsive styles
+  const controlsPanelStyle = {
+    position: 'absolute',
+    top: isMobile ? 8 : 12,
+    left: isMobile ? 8 : 12,
+    right: isMobile ? 8 : 'auto',
+    zIndex: 7000,
+    background: 'rgba(255,255,255,0.97)',
+    padding: 10,
+    borderRadius: 8,
+    width: isMobile ? 'auto' : 320,
+    maxWidth: isMobile ? 'calc(100% - 16px)' : 400,
+  };
+
+  const toastStyle = {
+    position: 'fixed',
+    bottom: 12,
+    zIndex: 20000,
+    background: 'rgba(17,24,39,0.95)',
+    color: 'white',
+    padding: '12px 16px',
+    borderRadius: 8,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+    maxWidth: '300px',
+    ...(isMobile ? {
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: 'calc(100% - 24px)',
+        textAlign: 'center',
+    } : {
+        right: 12,
+    })
+  };
+  // END: Responsive styles
   
   return (
     <>
@@ -606,22 +658,23 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
 
         {/* Advanced Controls Panel */}
         {!loading && !error && allData.length > 0 && (
-          <div style={{ position: 'absolute', left: 12, top: 12, zIndex: 7000, background: 'rgba(255,255,255,0.97)', padding: 10, borderRadius: 8, minWidth: 320, maxWidth: 400 }}>
-            {/* Performance Mode Selection */}
-            <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Performance Mode:</div>
-              <select 
-                value={performanceMode} 
-                onChange={e => setPerformanceMode(e.target.value)}
-                style={{ fontSize: 12, padding: '4px 6px', borderRadius: 4, border: '1px solid #d1d5db', marginRight: 8 }}
-              >
-                <option value="performance">Performance (Fast)</option>
-                <option value="balanced">Balanced</option>
-                <option value="high">High Quality (Slow)</option>
-              </select>
+          <div style={controlsPanelStyle}>
+            {/* Performance Mode & Filtering Toggles */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px 16px', alignItems: 'center', marginBottom: 8 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 4 }}>Performance Mode:</div>
+                <select 
+                  value={performanceMode} 
+                  onChange={e => setPerformanceMode(e.target.value)}
+                  style={{ fontSize: 12, padding: '4px 6px', borderRadius: 4, border: '1px solid #d1d5db' }}
+                >
+                  <option value="performance">Performance</option>
+                  <option value="balanced">Balanced</option>
+                  <option value="high">High Quality</option>
+                </select>
+              </div>
               
-              {/* Geographic Filtering Toggle */}
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12 }}>
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, marginTop: isMobile ? 0 : 20 }}>
                 <input 
                   type="checkbox" 
                   checked={geographicFiltering} 
@@ -657,7 +710,7 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
 
             {showHeatmap && (
               <div style={{ display: 'grid', gap: 6, marginBottom: 8 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 8, alignItems: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '4px 8px', alignItems: 'center' }}>
                   <label style={{ fontSize: 11 }}>Radius: {heatRadius}</label>
                   <input type="range" min="10" max="80" value={heatRadius} onChange={e => setHeatRadius(Number(e.target.value))} />
                   
@@ -704,29 +757,85 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
           </div>
         )}
 
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        {/* START: Responsive Styles Block */}
+        <style>{`
+          @keyframes spin { to { transform: rotate(360deg); } }
+          
+          .eq-legend {
+            position: absolute;
+            bottom: 20px;
+            right: 12px;
+            background: rgba(255,255,255,0.97);
+            padding: 12px;
+            border-radius: 8px;
+            z-index: 1000;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+            transition: all 0.2s ease-in-out;
+          }
+          .eq-legend.collapsed {
+            padding: 6px;
+          }
+          .eq-legend .title { font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+          .eq-legend .row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+          .eq-legend .swatch { width: 16px; height: 16px; border-radius: 4px; }
+          .eq-legend .toggle {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+          }
+
+          /* Mobile adjustments */
+          @media (max-width: 767px) {
+            .eq-legend {
+              bottom: 12px;
+              left: 8px;
+              right: 8px;
+              width: auto;
+            }
+            .eq-legend:not(.collapsed) .title {
+              text-align: center;
+            }
+            .eq-legend:not(.collapsed) .legend-body {
+              display: flex;
+              flex-wrap: wrap;
+              justify-content: center;
+              gap: 4px 16px; /* row and column gap */
+            }
+          }
+        `}</style>
+        {/* END: Responsive Styles Block */}
 
         {/* Enhanced Legend */}
         <div className={`eq-legend ${legendCollapsed ? 'collapsed' : ''}`} role="region" aria-label="Magnitude legend">
           {!legendCollapsed ? (
             <>
               <div className="title">Legend</div>
-              <div className="row">
-                <div className="swatch" style={{ background: '#10b981' }}></div><div style={{fontSize:12}}> &lt;2.0</div>
+              <div className="legend-body">
+                <div className="row">
+                  <div className="swatch" style={{ background: '#10b981' }}></div><div style={{fontSize:12}}> &lt;2.0</div>
+                </div>
+                <div className="row">
+                  <div className="swatch" style={{ background: '#84cc16' }}></div><div style={{fontSize:12}}> 2-3.9</div>
+                </div>
+                <div className="row">
+                  <div className="swatch" style={{ background: '#f59e0b' }}></div><div style={{fontSize:12}}> 4-4.9</div>
+                </div>
+                <div className="row">
+                  <div className="swatch" style={{ background: '#f97316' }}></div><div style={{fontSize:12}}> 5-5.9</div>
+                </div>
+                <div className="row">
+                  <div className="swatch" style={{ background: '#b91c1c' }}></div><div style={{fontSize:12}}> 6.0+</div>
+                </div>
               </div>
-              <div className="row">
-                <div className="swatch" style={{ background: '#84cc16' }}></div><div style={{fontSize:12}}> 2.0-3.9</div>
-              </div>
-              <div className="row">
-                <div className="swatch" style={{ background: '#f59e0b' }}></div><div style={{fontSize:12}}> 4.0-4.9</div>
-              </div>
-              <div className="row">
-                <div className="swatch" style={{ background: '#f97316' }}></div><div style={{fontSize:12}}> 5.0-5.9</div>
-              </div>
-              <div className="row">
-                <div className="swatch" style={{ background: '#b91c1c' }}></div><div style={{fontSize:12}}> 6.0+</div>
-              </div>
-              <div style={{ marginTop: 8, fontSize: 10, color: '#6b7280' }}>
+              <div style={{ marginTop: 8, fontSize: 10, color: '#6b7280', textAlign: 'center' }}>
                 Mode: {shouldUseCanvas ? 'Canvas' : 'DOM'} | {performanceMode}
               </div>
               <div style={{ marginTop: 6, display: 'flex', justifyContent: 'flex-end' }}>
@@ -741,35 +850,21 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
       
       {/* Enhanced Toast System */}
       {toast && (
-        <div style={{ 
-          position: 'fixed', 
-          right: 12, 
-          bottom: 12, 
-          zIndex: 20000, 
-          background: 'rgba(17,24,39,0.95)', 
-          color: 'white', 
-          padding: '12px 16px', 
-          borderRadius: 8,
-          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-          maxWidth: '300px'
-        }}>
+        <div style={toastStyle}>
           <div style={{ fontSize: 13 }}>{toast}</div>
           <button 
             onClick={() => setToast(null)} 
             style={{ 
               position: 'absolute',
               right: 8,
-              top: 8,
+              top: '50%',
+              transform: 'translateY(-50%)',
               background: 'transparent', 
               border: 'none', 
-              color: 'white', 
+              color: '#a1a1aa', 
               cursor: 'pointer',
-              fontSize: 16,
-              width: 20,
-              height: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              fontSize: 18,
+              padding: '4px'
             }}
           >
             ✕
@@ -789,9 +884,21 @@ export default function MapView({ range = '24h', minMagnitude = 0, selectedId = 
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
-          zIndex: 30000 
+          zIndex: 30000,
+          padding: '16px'
         }}>
-          <div style={{ zIndex: 30001 }}>
+          {/* Modal Content container made responsive */}
+          <div style={{ 
+            background: 'white', 
+            borderRadius: '8px',
+            padding: '20px',
+            width: '100%',
+            maxWidth: '800px', 
+            height: '100%',
+            maxHeight: '85vh', 
+            overflowY: 'auto',
+            zIndex: 30001 
+          }}>
             <CacheInspector 
               onClose={() => setShowInspector(false)} 
               onClearAll={(err, removed) => {
