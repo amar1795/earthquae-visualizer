@@ -7,6 +7,10 @@ import { useState } from 'react'
 export default function Home() {
   const [range, setRange] = useState('24h')
   const [minMagnitude, setMinMagnitude] = useState(0)
+  // selected event id used to link charts <-> map
+  const [selectedId, setSelectedId] = useState(null)
+  // highlighted ids (from chart hover) to visually emphasize many markers
+  const [highlightedIds, setHighlightedIds] = useState([])
 
   return (
     <main className="p-6 font-sans" style={{ padding: '1.5rem', fontFamily: 'Arial, sans-serif' }}>
@@ -17,8 +21,8 @@ export default function Home() {
 
       <section className="grid grid-cols-1 lg:grid-cols-4 gap-6" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
         <aside className="lg:col-span-1">
-          <div className="p-4 bg-white rounded shadow">
-            <Charts range={range} minMagnitude={minMagnitude} />
+            <div className="p-4 bg-white rounded shadow">
+            <Charts range={range} minMagnitude={minMagnitude} selectedId={selectedId} setSelectedId={setSelectedId} setHighlightedIds={setHighlightedIds} />
           </div>
           <div style={{ height: 12 }} />
           <div className="p-4 bg-white rounded shadow">
@@ -26,7 +30,7 @@ export default function Home() {
           </div>
         </aside>
         <div className="lg:col-span-3">
-          <MapView range={range} minMagnitude={minMagnitude} />
+          <MapView range={range} minMagnitude={minMagnitude} selectedId={selectedId} setSelectedId={setSelectedId} highlightedIds={highlightedIds} />
         </div>
       </section>
     </main>

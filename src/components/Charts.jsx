@@ -3,7 +3,7 @@ import earthquakesAPI from '../api/earthquakes'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, CartesianGrid } from 'recharts'
 
 // data: array of features with { time, magnitude }
-export default function Charts({ range = '24h', minMagnitude = 0 }) {
+export default function Charts({ range = '24h', minMagnitude = 0, selectedId = null, setSelectedId = () => {}, setHighlightedIds = () => {} }) {
   const [data, setData] = useState([])
 
   useEffect(() => {
@@ -33,13 +33,14 @@ export default function Charts({ range = '24h', minMagnitude = 0 }) {
 
   const histogram = useMemo(() => {
     const buckets = [0,1,2,3,4,5,6,7,8]
-    const counts = buckets.map((b, i) => ({ bucket: `${b}-${b+1}`, count: 0 }))
+  const counts = buckets.map((b, i) => ({ bucket: `${b}-${b+1}`, count: 0, ids: [] }))
     data.forEach(d => {
       const m = Math.max(0, Math.floor(d.magnitude || 0))
       const idx = Math.min(m, counts.length - 1)
       counts[idx].count += 1
+      if (d.id) counts[idx].ids.push(d.id)
     })
-    return counts
+  return counts
   }, [data])
 
   return (
@@ -64,7 +65,17 @@ export default function Charts({ range = '24h', minMagnitude = 0 }) {
             <XAxis dataKey="bucket" />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="count" fill="#ef4444" />
+            <Bar dataKey="count" fill="#ef4444"
+              onMouseEnter={(entry, index) => {
+                const ids = entry && entry.payload && entry.payload.ids ? entry.payload.ids : []
+                setHighlightedIds(ids)
+              }}
+              onMouseLeave={() => setHighlightedIds([])}
+              onClick={(entry) => {
+                const id = entry && entry.payload && entry.payload.ids && entry.payload.ids[0]
+                setSelectedId(id || null)
+              }}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

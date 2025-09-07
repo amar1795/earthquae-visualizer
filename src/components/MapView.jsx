@@ -5,6 +5,7 @@ import MarkerClusterGroup from 'react-leaflet-cluster'
 import earthquakesAPI from '../api/earthquakes'
 import HeatmapLayer from './HeatmapLayer'
 import { formatTimestamp } from '../utils/formatDate'
+import cacheLib from '../lib/cache'
 
 function magnitudeColor(m) {
   if (m >= 6) return '#b91c1c' // red
@@ -19,7 +20,18 @@ function magnitudeRadius(m) {
   return Math.max(4, Math.min(40, m * 4))
 }
 
-export default function MapView({ range = '24h', minMagnitude = 0 }) {
+const RANGE_TO_FEED = {
+  '24h': 'all_day',
+  '7d': 'all_week',
+  '30d': 'all_month'
+}
+
+function buildFeedUrl(range) {
+  const feed = RANGE_TO_FEED[range] || RANGE_TO_FEED['24h']
+  return `https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/${feed}.geojson`
+}
+
+export default function MapView({ range = '24h', minMagnitude = 0, selectedId = null, setSelectedId = () => {}, highlightedIds = [] }) {
   const [data, setData] = useState([])
   const [visibleData, setVisibleData] = useState([]) // data rendered so far
   const [loading, setLoading] = useState(true)
@@ -33,6 +45,7 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
   const [heatRadius, setHeatRadius] = useState(25)
   const [heatBlur, setHeatBlur] = useState(15)
   const [heatScale, setHeatScale] = useState(1)
+  const [fromCache, setFromCache] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -47,7 +60,9 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
       if (!mounted) return
       if (res.ok) {
         setData(res.features)
-        setError(null)
+  // reflect cache source for UI
+  setFromCache(!!res.fromCache)
+  setError(null)
         // reset progressive render state
         setVisibleData([])
         setRenderProgress(0)
@@ -74,6 +89,38 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
       controller.abort()
     }
   }, [range, minMagnitude])
+
+  // pan to selected marker when selection changes
+  useEffect(() => {
+    if (!selectedId || !visibleData || visibleData.length === 0) return
+    const found = visibleData.find(d => d.id === selectedId)
+    if (found && typeof window !== 'undefined' && window.L && found.coords) {
+      try {
+        const mapEl = document.querySelector('.leaflet-container')
+        if (mapEl && mapEl._leaflet_map) {
+          mapEl._leaflet_map.panTo([found.coords.lat, found.coords.lon])
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+  }, [selectedId, visibleData])
+
+  // background prefetch common ranges when idle
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('requestIdleCallback' in window)) return
+    let cancelled = false
+    const cb = () => {
+      if (cancelled) return
+      const ranges = ['24h', '7d', '30d']
+      for (const r of ranges) {
+        // warm cache by calling API without blocking
+        earthquakesAPI.getEarthquakes({ range: r, minMagnitude: 0, maxResults: 2000 }).catch(() => {})
+      }
+    }
+    const id = window.requestIdleCallback(cb, { timeout: 2000 })
+    return () => { cancelled = true; window.cancelIdleCallback && window.cancelIdleCallback(id) }
+  }, [])
 
   // progressive batch renderer
   useEffect(() => {
@@ -166,23 +213,27 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
             }
           }}
         >
-          {visibleData.map(eq => (
-            <Marker key={eq.id} position={[eq.coords.lat, eq.coords.lon]} eq={eq} magnitude={eq.magnitude}>
-              <CircleMarker
-                center={[0, 0]}
-                pathOptions={{ color: magnitudeColor(eq.magnitude), fillColor: magnitudeColor(eq.magnitude), fillOpacity: 0.8 }}
-                radius={magnitudeRadius(eq.magnitude)}
-              />
-              <Popup>
-                <div style={{minWidth: 180}}>
-                  <strong>{eq.place}</strong>
-                  <div>Mag: {eq.magnitude ?? 'N/A'}</div>
-                  <div>Depth: {eq.depth ?? 'N/A'} km</div>
-                  <div>{formatTimestamp(eq.time)}</div>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
+          {visibleData.map(eq => {
+    const isSelected = selectedId && eq.id === selectedId
+    const isHighlighted = highlightedIds && highlightedIds.length > 0 && highlightedIds.includes(eq.id)
+            return (
+              <Marker key={eq.id} position={[eq.coords.lat, eq.coords.lon]} eq={eq} magnitude={eq.magnitude} eventHandlers={{ click: () => setSelectedId(eq.id) }}>
+                <CircleMarker
+                  center={[0, 0]}
+      pathOptions={{ color: isSelected ? '#111827' : (isHighlighted ? '#0ea5a4' : magnitudeColor(eq.magnitude)), fillColor: isSelected ? '#111827' : (isHighlighted ? '#0ea5a4' : magnitudeColor(eq.magnitude)), fillOpacity: isSelected ? 1 : (isHighlighted ? 0.95 : 0.8) }}
+      radius={isSelected ? Math.max(10, magnitudeRadius(eq.magnitude) + 4) : (isHighlighted ? Math.max(8, magnitudeRadius(eq.magnitude) + 2) : magnitudeRadius(eq.magnitude))}
+                />
+                <Popup>
+                  <div style={{minWidth: 180}}>
+                    <strong>{eq.place}</strong>
+                    <div>Mag: {eq.magnitude ?? 'N/A'}</div>
+                    <div>Depth: {eq.depth ?? 'N/A'} km</div>
+                    <div>{formatTimestamp(eq.time)}</div>
+                  </div>
+                </Popup>
+              </Marker>
+            )
+          })}
   </MarkerClusterGroup>
   )}
       </MapContainer>
@@ -206,6 +257,11 @@ export default function MapView({ range = '24h', minMagnitude = 0 }) {
               <input type="range" min="5" max="40" value={heatBlur} onChange={e => setHeatBlur(Number(e.target.value))} />
               <div style={{ fontSize: 12, fontWeight: 600 }}>Intensity scale: {heatScale.toFixed(2)}</div>
               <input type="range" min="0.1" max="3" step="0.1" value={heatScale} onChange={e => setHeatScale(Number(e.target.value))} />
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ fontSize: 12, color: '#6b7280' }}>{visibleData.length} points</div>
+                <div style={{ fontSize: 12, padding: '2px 6px', borderRadius: 6, background: fromCache ? '#e6fffa' : '#eef2ff', color: fromCache ? '#0f766e' : '#3730a3' }}>{fromCache ? 'Cached' : 'Live'}</div>
+                <button onClick={async () => { await cacheLib.removeCache(`${buildFeedUrl(range)}|min:${minMagnitude}`); setFromCache(false); alert('Cache cleared for current feed') }} style={{ marginLeft: 6, background: '#ef4444', color: 'white', border: 'none', padding: '4px 8px', borderRadius: 6, cursor: 'pointer' }}>Clear Cache</button>
+              </div>
             </div>
           )}
         </div>
