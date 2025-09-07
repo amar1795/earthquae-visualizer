@@ -1,0 +1,30 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Env files
+.env*
+
+# IDE files
+.vscode/
+.idea/
+
+# Misc
+*.log
+
+# Project files to ignore
+project.js
+readme.js
+Take-Home Challenge for UI (1) (1).pdf
